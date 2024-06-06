@@ -1,0 +1,29 @@
+WITH AggregatedFunds AS (
+    SELECT 
+        index_ticker,
+        issuer,
+        SUM(fund_aum) AS total_fund_aum
+    FROM 
+        your_table
+    GROUP BY 
+        index_ticker, issuer
+),
+RankedFunds AS (
+    SELECT 
+        index_ticker,
+        issuer,
+        total_fund_aum,
+        ROW_NUMBER() OVER (PARTITION BY issuer ORDER BY total_fund_aum DESC) AS rank
+    FROM 
+        AggregatedFunds
+)
+SELECT 
+    index_ticker,
+    issuer,
+    total_fund_aum
+FROM 
+    RankedFunds
+WHERE 
+    rank <= 10
+ORDER BY 
+    issuer, rank;
